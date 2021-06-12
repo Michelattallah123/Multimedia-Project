@@ -1,0 +1,49 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Bootstrap Template</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{ url_for('static',filename='styles/all.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static',filename='styles/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static',filename='styles/results.css') }}">
+        <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300&display=swap" rel="stylesheet">
+        <link rel="preconnect" href="https://fonts.gstatic.com">
+        <link href="https://fonts.googleapis.com/css2?family=Mate+SC&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        
+      <main>
+          <div class="text-center" style="display: flex;
+          justify-content: center;">
+        <h1 class="text-uppercase" id="header">Similar {{file_type}}s</h1>
+        
+        </div>
+        <hr>
+          <div class=" row justify-content-between container">
+            
+        {%for i in data%}
+        <div class="col-4 img-container">
+            {%if file_type=="Image"%}
+            <img src="{{ url_for('static', filename='images/')}}{{i}}" class="img">
+            {%else%}
+            {%set x = "../static/videos/"+i.split('.')[0]+"/"+i%}
+            <iframe src="{{x}}" frameborder="0" sandbox></iframe>
+            {%endif%}
+        </div>
+        {%endfor%}
+    </div>
+      </main>
+       
+        <script src="{{ url_for('static',filename='jquery.js') }}"></script>
+        <script src="{{ url_for('static',filename='popper.js') }}"></script>
+        <script src="{{ url_for('static',filename='bootstrap.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='all.min.js') }}"></script>
+        <script src="{{ url_for('static',filename='custom.js') }}"></script>   
+    </body>
+    </html>
+    
+    
+    
+    
