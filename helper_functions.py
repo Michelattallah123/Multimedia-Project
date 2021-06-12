@@ -106,6 +106,18 @@ def compare_gabor_histo(histo1, histo2):
             
     return diff
 
+def comparing_using_gabor_histo(histogram, histograms):
+    list_of_similar_images = []
+    score = 0
+    for histo in histograms:
+        diffs = compare_gabor_histo(histogram, histo)
+        if diffs*100 > 20:
+            score = 1
+        if score ==1:
+            list_of_similar_images.append(histo)
+        score = 0
+    return list_of_similar_images
+
 def key_frame_extraction(video_path, destination, no_of_frames_to_returned):
     vd = Video()
     no_of_frames_to_returned = int(no_of_frames_to_returned)
@@ -207,14 +219,4 @@ def comparing_using_histo(histogram, histograms):
         score = 0
     return list_of_similar_images
 
-def comparing_using_gabor_histo(histogram, histograms):
-    list_of_similar_images = []
-    score = 0
-    for histo in histograms:
-        diffs = compare_gabor_histo(histogram, histo)
-        if diffs*100 > 20:
-            score = 1
-        if score ==1:
-            list_of_similar_images.append(histo)
-        score = 0
-    return list_of_similar_images
+
