@@ -37,6 +37,17 @@ def comparing_using_histo(histogram, histograms):
     return list_of_similar_images
 
 #Mean color
+def mean_color(img):
+    red_channel = img[:, :, 2]
+    blue_channel = img[:, :, 0]
+    green_channel = img[:, :, 1]
+    img_size = len(img[:, 0]) * len(img[0, :])
+    R_mean = sum(map(sum, red_channel)) / img_size
+    B_mean = sum(map(sum, blue_channel)) / img_size
+    G_mean = sum(map(sum, green_channel)) / img_size
+    meancolor = [R_mean, B_mean, G_mean]
+    return meancolor
+
 def comparing_using_mean_color(mean_color, mean_colors):
     list_of_similar_images = []
     score = 0
@@ -49,19 +60,6 @@ def comparing_using_mean_color(mean_color, mean_colors):
             list_of_similar_images.append(mean)
         score = 0
     return list_of_similar_images
-
-def mean_color(img):
-    red_channel = img[:, :, 2]
-    blue_channel = img[:, :, 0]
-    green_channel = img[:, :, 1]
-    img_size = len(img[:, 0]) * len(img[0, :])
-    R_mean = sum(map(sum, red_channel)) / img_size
-    B_mean = sum(map(sum, blue_channel)) / img_size
-    G_mean = sum(map(sum, green_channel)) / img_size
-    meancolor = [R_mean, B_mean, G_mean]
-    #print(meancolor)
-    return meancolor
-
 
 def compare_mean_color(mean1, mean2):
     diff = [abs(mean1[0] - mean2['mean_color'][0]), abs(mean1[1] - mean2['mean_color'][1]), abs(mean1[2] - mean2['mean_color'][2])]
