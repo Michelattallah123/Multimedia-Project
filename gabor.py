@@ -37,7 +37,7 @@ class Gabor(object):
         return accum
 
 
-# how to use it
+#Testing Part
 # if __name__ == "__main__":
 #     G = Gabor()
 #     img = cv2.imread('HP_train.jpg')
