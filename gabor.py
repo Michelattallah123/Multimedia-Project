@@ -18,25 +18,8 @@ class Gabor(object):
 
     def gabor_histogram(self, input, type='global', n_slice=2):
         ''' count img histogram
-
-          arguments
-            input    : a path to a image or a numpy.ndarray
-            type     : 'global' means count the histogram for whole image
-                       'region' means count the histogram for regions in images, then concatanate all of them
-            n_slice  : work when type equals to 'region', height & width will equally sliced into N slices
-            normalize: normalize output histogram
-
-          return
-            type == 'global'
-              a numpy array with size len(gabor_kernels)
-            type == 'region'
-              a numpy array with size len(gabor_kernels) * n_slice * n_slice
         '''
-        if isinstance(input, np.ndarray):  # examinate input type
-            img = input.copy()
-        else:
-            img = scipy.misc.imread(input, mode='RGB')
-        height, width, channel = img.shape
+        
 
         if type == 'global':
             hist = self._gabor(img, kernels=self.gabor_kernels)
