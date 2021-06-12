@@ -19,20 +19,10 @@ class Gabor(object):
     def gabor_histogram(self, input, type='global', n_slice=2):
         ''' count img histogram
         '''
-        
+    
 
         if type == 'global':
             hist = self._gabor(img, kernels=self.gabor_kernels)
-
-        # elif type == 'region':
-        #     hist = np.zeros((n_slice, n_slice, len(self.gabor_kernels)))
-        #     h_silce = np.around(np.linspace(0, height, n_slice + 1, endpoint=True)).astype(int)
-        #     w_slice = np.around(np.linspace(0, width, n_slice + 1, endpoint=True)).astype(int)
-        #
-        #     for hs in range(len(h_silce) - 1):
-        #         for ws in range(len(w_slice) - 1):
-        #             img_r = img[h_silce[hs]:h_silce[hs + 1], w_slice[ws]:w_slice[ws + 1]]  # slice img to regions
-        #             hist[hs][ws] = self._gabor(img_r, kernels=self.gabor_kernels)
 
         hist = cv2.calcHist([hist], [0], None, [256], [0, 256])
 
