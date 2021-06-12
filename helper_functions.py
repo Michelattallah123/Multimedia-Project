@@ -10,6 +10,26 @@ from gabor import Gabor
 file_directory = os.getenv('FILE_PATH')
 frame_number = 3
 
+#Histogram
+def compare_histo(histo1, histo2):
+    diff = [cv2.compareHist(histo1[0], histo2['histogram_r'], cv2.HISTCMP_CORREL),
+            cv2.compareHist(histo1[1], histo2['histogram_g'], cv2.HISTCMP_CORREL),
+            cv2.compareHist(histo1[2], histo2['histogram_b'], cv2.HISTCMP_CORREL)]
+    return diff
+
+def comparing_using_histo(histogram, histograms):
+    list_of_similar_images = []
+    score = 0
+    for histo in histograms:
+        diffs = compare_histo(histogram, histo)
+        for diff in diffs:
+            if diff*100 > 30:
+                score += 1
+        if score > 1:
+            list_of_similar_images.append(histo)
+        score = 0
+    return list_of_similar_images
+
 #Mean color
 def comparing_using_mean_color(mean_color, mean_colors):
     list_of_similar_images = []
@@ -58,27 +78,6 @@ def comparing_using_gabor_histo(histogram, histograms):
             list_of_similar_images.append(histo)
         score = 0
     return list_of_similar_images
-
-#Histogram
-def compare_histo(histo1, histo2):
-    diff = [cv2.compareHist(histo1[0], histo2['histogram_r'], cv2.HISTCMP_CORREL),
-            cv2.compareHist(histo1[1], histo2['histogram_g'], cv2.HISTCMP_CORREL),
-            cv2.compareHist(histo1[2], histo2['histogram_b'], cv2.HISTCMP_CORREL)]
-    return diff
-
-def comparing_using_histo(histogram, histograms):
-    list_of_similar_images = []
-    score = 0
-    for histo in histograms:
-        diffs = compare_histo(histogram, histo)
-        for diff in diffs:
-            if diff*100 > 30:
-                score += 1
-        if score > 1:
-            list_of_similar_images.append(histo)
-        score = 0
-    return list_of_similar_images
-
 
 #Video
 def key_frame_extraction(video_path, destination, no_of_frames_to_returned):
