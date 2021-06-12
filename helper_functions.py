@@ -9,6 +9,119 @@ from Katna.writer import KeyFrameDiskWriter
 from gabor import Gabor
 file_directory = os.getenv('FILE_PATH')
 frame_number = 3
+
+#Mean color
+def comparing_using_mean_color(mean_color, mean_colors):
+    list_of_similar_images = []
+    score = 0
+    for mean in mean_colors:
+        diffs = compare_mean_color(mean_color, mean)
+        for diff in diffs:
+            if diff < 50:
+                score += 1
+        if score > 2:
+            list_of_similar_images.append(mean)
+        score = 0
+    return list_of_similar_images
+
+def mean_color(img):
+    red_channel = img[:, :, 2]
+    blue_channel = img[:, :, 0]
+    green_channel = img[:, :, 1]
+    img_size = len(img[:, 0]) * len(img[0, :])
+    R_mean = sum(map(sum, red_channel)) / img_size
+    B_mean = sum(map(sum, blue_channel)) / img_size
+    G_mean = sum(map(sum, green_channel)) / img_size
+    meancolor = [R_mean, B_mean, G_mean]
+    #print(meancolor)
+    return meancolor
+
+
+def compare_mean_color(mean1, mean2):
+    diff = [abs(mean1[0] - mean2['mean_color'][0]), abs(mean1[1] - mean2['mean_color'][1]), abs(mean1[2] - mean2['mean_color'][2])]
+    return diff
+
+
+
+
+
+
+#Gabor
+def compare_gabor_histo(histo1, histo2):
+    diff = cv2.compareHist(histo1, histo2['gabor_histogram'], cv2.HISTCMP_CORREL)
+            
+    return diff
+
+def comparing_using_gabor_histo(histogram, histograms):
+    list_of_similar_images = []
+    score = 0
+    for histo in histograms:
+        diffs = compare_gabor_histo(histogram, histo)
+        if diffs*100 > 20:
+            score = 1
+        if score ==1:
+            list_of_similar_images.append(histo)
+        score = 0
+    return list_of_similar_images
+
+#Histogram
+def compare_histo(histo1, histo2):
+    diff = [cv2.compareHist(histo1[0], histo2['histogram_r'], cv2.HISTCMP_CORREL),
+            cv2.compareHist(histo1[1], histo2['histogram_g'], cv2.HISTCMP_CORREL),
+            cv2.compareHist(histo1[2], histo2['histogram_b'], cv2.HISTCMP_CORREL)]
+    return diff
+
+def comparing_using_histo(histogram, histograms):
+    list_of_similar_images = []
+    score = 0
+    for histo in histograms:
+        diffs = compare_histo(histogram, histo)
+        for diff in diffs:
+            if diff*100 > 30:
+                score += 1
+        if score > 1:
+            list_of_similar_images.append(histo)
+        score = 0
+    return list_of_similar_images
+
+
+#Video
+def key_frame_extraction(video_path, destination, no_of_frames_to_returned):
+    vd = Video()
+    no_of_frames_to_returned = int(no_of_frames_to_returned)
+    diskwriter = KeyFrameDiskWriter(location=destination)
+    video_file_path = os.path.join(video_path)
+    vd.extract_video_keyframes(
+        no_of_frames=no_of_frames_to_returned, file_path=video_file_path,
+        writer=diskwriter
+    )
+
+
+def compare_keyframe_with_other_keyframes(list_of_histograms, key_frames):
+    score = 0
+    for histogram in list_of_histograms:
+        for histogram1 in key_frames:
+            if len(comparing_using_histo_video(histogram, histogram1)) > 0:
+                 score += 1
+                 break
+    if (score / frame_number) > 0.5:
+        return True
+    else:
+        return False
+
+def comparing_using_histo_video(histogram, histograms):
+    list_of_similar_images = []
+    score = 0
+    diffs = compare_histo(histogram, histograms)
+    for diff in diffs:
+        if diff*100 > 20:
+            score += 1
+    if score > 1:
+        list_of_similar_images.append(histograms)
+    score = 0
+    return list_of_similar_images
+
+#Helper functions
 def histo(image):
     hist = []
     for i in range(3):
@@ -42,6 +155,31 @@ def save_image(image,data,image_name,Images):
                 os.makedirs(file_path)
     file_path = os.path.join(file_path,str(img_id)+'.'+image_name.split('.')[1])
     cv2.imwrite(file_path,image)
+    
+def filter_extension(extension):
+    return extension['video_extension'] == 'mp4' or extension['video_extension'] == 'mng'    
+
+def save_video(Videos,KeyFrames,video_name,video_extension,video):
+    Videos.insert(Videos(name=f'{video_name}.{video_extension}'))
+    video_id = Videos.query.order_by(Videos.id.desc()).first().id
+    target_path = f'{file_directory}/videos/{video_id}'
+    if not os.path.exists(target_path):
+            os.makedirs(target_path)
+    
+    video.save(os.path.join(target_path,f'{video_id}.{video_extension}'))
+    key_frames_path = f'{file_directory}/videos/{video_id}/key_frames'
+    if not os.path.exists(key_frames_path):
+            os.makedirs(key_frames_path)
+    target_path += f'/{video_id}.{video_extension}'
+    key_frame_extraction(target_path,key_frames_path,frame_number)   
+    key_frames = os.listdir(key_frames_path)
+    list_of_histograms = []
+    for key_frame in key_frames:
+        img = cv2.imread(os.path.join(key_frames_path,key_frame))
+        histogram = histo(img)
+        list_of_histograms.append(histogram)
+        save_key_frame(histogram,KeyFrames,video_id)
+    return {'video_id':video_id,'list_of_histograms':list_of_histograms,'video_extension':video_extension}
 
 def save_key_frame(data,KeyFrames,video_id):
     KeyFrames.insert(KeyFrames(
@@ -60,74 +198,6 @@ def convert_image_numpy(image):
     color_image_flag = 1
     img = cv2.imdecode(data, color_image_flag)
     return img
-
-
-
-def comparing_using_mean_color(mean_color, mean_colors):
-    list_of_similar_images = []
-    score = 0
-    for mean in mean_colors:
-        diffs = compare_mean_color(mean_color, mean)
-        for diff in diffs:
-            if diff < 50:
-                score += 1
-        if score > 2:
-            list_of_similar_images.append(mean)
-        score = 0
-    return list_of_similar_images
-
-def mean_color(img):
-    red_channel = img[:, :, 2]
-    blue_channel = img[:, :, 0]
-    green_channel = img[:, :, 1]
-    img_size = len(img[:, 0]) * len(img[0, :])
-    R_mean = sum(map(sum, red_channel)) / img_size
-    B_mean = sum(map(sum, blue_channel)) / img_size
-    G_mean = sum(map(sum, green_channel)) / img_size
-    meancolor = [R_mean, B_mean, G_mean]
-    #print(meancolor)
-    return meancolor
-
-
-def compare_mean_color(mean1, mean2):
-    diff = [abs(mean1[0] - mean2['mean_color'][0]), abs(mean1[1] - mean2['mean_color'][1]), abs(mean1[2] - mean2['mean_color'][2])]
-    return diff
-
-
-
-def compare_histo(histo1, histo2):
-    diff = [cv2.compareHist(histo1[0], histo2['histogram_r'], cv2.HISTCMP_CORREL),
-            cv2.compareHist(histo1[1], histo2['histogram_g'], cv2.HISTCMP_CORREL),
-            cv2.compareHist(histo1[2], histo2['histogram_b'], cv2.HISTCMP_CORREL)]
-    return diff
-
-def compare_gabor_histo(histo1, histo2):
-    diff = cv2.compareHist(histo1, histo2['gabor_histogram'], cv2.HISTCMP_CORREL)
-            
-    return diff
-
-def comparing_using_gabor_histo(histogram, histograms):
-    list_of_similar_images = []
-    score = 0
-    for histo in histograms:
-        diffs = compare_gabor_histo(histogram, histo)
-        if diffs*100 > 20:
-            score = 1
-        if score ==1:
-            list_of_similar_images.append(histo)
-        score = 0
-    return list_of_similar_images
-
-def key_frame_extraction(video_path, destination, no_of_frames_to_returned):
-    vd = Video()
-    no_of_frames_to_returned = int(no_of_frames_to_returned)
-    diskwriter = KeyFrameDiskWriter(location=destination)
-    video_file_path = os.path.join(video_path)
-    vd.extract_video_keyframes(
-        no_of_frames=no_of_frames_to_returned, file_path=video_file_path,
-        writer=diskwriter
-    )
-
 
 def video_seed(location,Videos,KeyFrames):
     files =  os.listdir(location)
@@ -156,67 +226,6 @@ def video_seed(location,Videos,KeyFrames):
             histogram = histo(img)
             save_key_frame(histogram,KeyFrames,video_id)
 
-def save_video(Videos,KeyFrames,video_name,video_extension,video):
-    Videos.insert(Videos(name=f'{video_name}.{video_extension}'))
-    video_id = Videos.query.order_by(Videos.id.desc()).first().id
-    target_path = f'{file_directory}/videos/{video_id}'
-    if not os.path.exists(target_path):
-            os.makedirs(target_path)
-    
-    video.save(os.path.join(target_path,f'{video_id}.{video_extension}'))
-    key_frames_path = f'{file_directory}/videos/{video_id}/key_frames'
-    if not os.path.exists(key_frames_path):
-            os.makedirs(key_frames_path)
-    target_path += f'/{video_id}.{video_extension}'
-    key_frame_extraction(target_path,key_frames_path,frame_number)   
-    key_frames = os.listdir(key_frames_path)
-    list_of_histograms = []
-    for key_frame in key_frames:
-        img = cv2.imread(os.path.join(key_frames_path,key_frame))
-        histogram = histo(img)
-        list_of_histograms.append(histogram)
-        save_key_frame(histogram,KeyFrames,video_id)
-    return {'video_id':video_id,'list_of_histograms':list_of_histograms,'video_extension':video_extension}
-    
 
-def filter_extension(extension):
-    return extension['video_extension'] == 'mp4' or extension['video_extension'] == 'mng'
-
-def compare_keyframe_with_other_keyframes(list_of_histograms, key_frames):
-    score = 0
-    for histogram in list_of_histograms:
-        for histogram1 in key_frames:
-            if len(comparing_using_histo_video(histogram, histogram1)) > 0:
-                 score += 1
-                 break
-    if (score / frame_number) > 0.5:
-        return True
-    else:
-        return False
-
-def comparing_using_histo_video(histogram, histograms):
-    list_of_similar_images = []
-    score = 0
-    diffs = compare_histo(histogram, histograms)
-    for diff in diffs:
-        if diff*100 > 20:
-            score += 1
-    if score > 1:
-        list_of_similar_images.append(histograms)
-    score = 0
-    return list_of_similar_images
-
-def comparing_using_histo(histogram, histograms):
-    list_of_similar_images = []
-    score = 0
-    for histo in histograms:
-        diffs = compare_histo(histogram, histo)
-        for diff in diffs:
-            if diff*100 > 30:
-                score += 1
-        if score > 1:
-            list_of_similar_images.append(histo)
-        score = 0
-    return list_of_similar_images
 
 
