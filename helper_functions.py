@@ -170,18 +170,6 @@ def save_video(Videos,KeyFrames,video_name,video_extension,video):
 def filter_extension(extension):
     return extension['video_extension'] == 'mp4' or extension['video_extension'] == 'mng'
 
-def key_frame_extraction(video_path, destination, no_of_frames_to_returned):
-    vd = Video()
-    no_of_frames_to_returned = int(no_of_frames_to_returned)
-    diskwriter = KeyFrameDiskWriter(location=destination)
-    video_file_path = os.path.join(video_path)
-    vd.extract_video_keyframes(
-        no_of_frames=no_of_frames_to_returned, file_path=video_file_path,
-        writer=diskwriter
-    )
-
-        
-
 def compare_keyframe_with_other_keyframes(list_of_histograms, key_frames):
     score = 0
     for histogram in list_of_histograms:
