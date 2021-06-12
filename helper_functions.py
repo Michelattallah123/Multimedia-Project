@@ -41,11 +41,6 @@ def compare_mean_color(mean1, mean2):
     diff = [abs(mean1[0] - mean2['mean_color'][0]), abs(mean1[1] - mean2['mean_color'][1]), abs(mean1[2] - mean2['mean_color'][2])]
     return diff
 
-
-
-
-
-
 #Gabor
 def compare_gabor_histo(histo1, histo2):
     diff = cv2.compareHist(histo1, histo2['gabor_histogram'], cv2.HISTCMP_CORREL)
