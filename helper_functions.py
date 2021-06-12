@@ -11,6 +11,12 @@ file_directory = os.getenv('FILE_PATH')
 frame_number = 3
 
 #Histogram
+def histo(image):
+    hist = []
+    for i in range(3):
+      hist.append( cv2.calcHist([image],[i],None,[256],[0,256]))
+    return hist
+
 def compare_histo(histo1, histo2):
     diff = [cv2.compareHist(histo1[0], histo2['histogram_r'], cv2.HISTCMP_CORREL),
             cv2.compareHist(histo1[1], histo2['histogram_g'], cv2.HISTCMP_CORREL),
@@ -116,12 +122,6 @@ def comparing_using_histo_video(histogram, histograms):
     return list_of_similar_images
 
 #Helper functions
-def histo(image):
-    hist = []
-    for i in range(3):
-      hist.append( cv2.calcHist([image],[i],None,[256],[0,256]))
-    return hist
-
 def calculate_all_params(image):
     histogram = histo(image)
     mean = mean_color(image)
